@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# Dagster
+.dagster/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# VS Code
+.vscode/
