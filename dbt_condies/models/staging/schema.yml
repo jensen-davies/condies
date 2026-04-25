@@ -1,0 +1,43 @@
+version: 2 
+
+models:
+  - name: stg_weather
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - crag_name
+            - hour_at
+            - fetch_date
+    description: >
+      One row per crag per forecasted hour, unpacked from raw Open-Meteo API responses.
+    columns:
+      - name: fetch_date
+        description: Date the Open-Meteo API was called.
+        tests:
+          - not_null
+      - name: crag_name
+        description: Name of the climbing crag.
+        tests:
+          - not_null
+      - name: latitude
+        description: Latitude of the crag.
+      - name: longitude
+        description: Longitude of the crag.
+      - name: loaded_at
+        description: Timestamp when the raw row was loaded into Snowflake.
+      - name: hour_index
+        description: Position within the API response array (0-71 for a 3-day forecast).
+      - name: hour_at
+        description: Timestamp of the forecasted hour in the crag's local timezone.
+        tests:
+          - not_null
+      - name: temperature_c
+        description: Air temperature at 2m above ground, in Celsius.
+      - name: precipitation_mm
+        description: Precipitation for the hour, in millimeteres.
+      - name: windspeed_kmh
+        description: Wind speed at 10m above ground, in km/h.
+      - name: wind_direction_deg
+        description: Wind direction in degrees (0=N, 90=E, 180=S, 270=W)
+      - name: weathercode
+        description: WMO weather code (0=clear sky, 61=rain, etc).

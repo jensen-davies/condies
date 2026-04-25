@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: raw
+    database: CONDIES_DB
+    schema: RAW
+    tables:
+    - name: open_meteo_weather
+      description: Raw Open-Meteo API responses, one row per crag per fetch.
