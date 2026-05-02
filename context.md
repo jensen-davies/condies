@@ -294,7 +294,7 @@
 - Nothing committed to GitHub yet
 
 **Remaining steps:**
-1. Commit everything to GitHub
+1. ~~Commit everything to GitHub~~ Done
 
 ---
 
@@ -315,4 +315,67 @@
 - Nothing committed to GitHub yet
 
 **Remaining steps:**
-1. Commit everything to GitHub
+1. Install Dagster and wire up orchestration
+
+---
+
+## 2026-05-01 — Dagster installed, raw_weather asset materializing
+**Completed:** Installed dagster, dagster-dbt, dagster-snowflake. Created `dagster_condies/` package with `raw_weather` SDA wrapping the Open-Meteo ingestion script. Asset materializes successfully in the UI.
+
+**Decisions made:**
+- `open_meteo.py` kept as standalone module — `weather_ingest.py` imports from it (framework separation)
+- Run with `dg dev -f dagster_condies/definitions.py` from project root
+- `MaterializeResult` returns `rows_inserted` and `crags` metadata
+
+**Current state:**
+- Full dbt pipeline built and tested in Snowflake
+- `dagster_condies/assets/weather_ingest.py` — `raw_weather` asset working
+- `dagster_condies/definitions.py` — registers `raw_weather`
+- dbt assets not yet wired into Dagster
+
+**Remaining steps:**
+1. Wire dbt models into Dagster as assets using `@dbt_assets` and `DbtCliResource`
+2. Fix BETWEEN scoring bug in `fct_conditions.sql`
+3. Commit to GitHub
+
+---
+
+## 2026-05-01 — Fixed BETWEEN scoring bug in fct_conditions
+**Completed:** Temperature scoring used `BETWEEN` with integer bounds, causing float temps like 57.65°F to fall in gaps and score 0. Replaced all three window scoring blocks with `>= / <` comparisons. `dbt run -s fct_conditions` confirmed fix.
+
+**Decisions made:**
+- `between 44 and 57` → `>= 44 and < 58` (and equivalent for all other bounds)
+- Dewpoint scoring already used `<` — no change needed there
+
+**Current state:**
+- `CONDIES_DB.MARTS.FCT_CONDITIONS` — scoring bug fixed, rebuilt
+- dbt assets not yet wired into Dagster
+- Changes not yet committed to GitHub
+
+**Remaining steps:**
+1. Wire dbt models into Dagster as assets using `@dbt_assets` and `DbtCliResource`
+2. Commit to GitHub
+
+---
+
+## 2026-05-02 — Full Dagster pipeline running end-to-end
+**Completed:** Wired dbt models into Dagster via `@dbt_assets`. Full pipeline materializes in correct order: `raw_weather` → `stg_weather` → `int_weather_daily` + `int_weather_windows` → `fct_conditions`. All dbt tests passing.
+
+**Decisions made:**
+- `CondiesDbtTranslator` maps dbt source `open_meteo_weather` to `raw_weather` Dagster asset — establishes correct dependency order
+- Removed `prepare_if_dev()` — manifest read from existing `target/manifest.json`; run `dbt parse` manually when models change
+- Fixed `stg_weather.sql` deduplication: added `latest` CTE using `QUALIFY ROW_NUMBER()` to keep only most recent fetch per crag per date
+- `profiles_dir=Path.home() / ".dbt"` added to `DbtCliResource` — profiles.yml lives outside the dbt project
+
+**Current state:**
+- Full Dagster pipeline working: `raw_weather` → dbt models, all tests passing
+- `dagster_condies/assets/weather_ingest.py` — `raw_weather` SDA
+- `dagster_condies/assets/dbt_assets.py` — `condies_dbt_assets` with custom translator
+- `dagster_condies/definitions.py` — wires both assets + `DbtCliResource`
+- `stg_weather.sql` — deduplication fixed
+- Nothing committed to GitHub yet
+
+**Remaining steps:**
+1. Commit to GitHub
+2. Add a daily schedule in Dagster
+3. Start visualization layer (Metabase or Streamlit)

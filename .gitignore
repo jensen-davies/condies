@@ -23,6 +23,7 @@ logs/
 
 # Dagster
 .dagster/
+.tmp_dagster_home_*/
 
 # Terraform
 .terraform/

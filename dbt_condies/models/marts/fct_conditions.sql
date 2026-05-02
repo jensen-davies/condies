@@ -68,10 +68,10 @@ components as (
 
         -- Morning temperature score (60 pts)
         case
-            when morning_avg_temp_f between 44 and 57 then 60
-            when morning_avg_temp_f between 58 and 63 then 44
-            when (morning_avg_temp_f between 35 and 43) or (morning_avg_temp_f between 64 and 67) then 30
-            when (morning_avg_temp_f between 28 and 34) or (morning_avg_temp_f between 68 and 75) then 14
+            when morning_avg_temp_f >= 44 and morning_avg_temp_f < 58 then 60
+            when morning_avg_temp_f >= 58 and morning_avg_temp_f < 64 then 44
+            when (morning_avg_temp_f >= 35 and morning_avg_temp_f < 44) or (morning_avg_temp_f >= 64 and morning_avg_temp_f < 68) then 30
+            when (morning_avg_temp_f >= 28 and morning_avg_temp_f < 35) or (morning_avg_temp_f >= 68 and morning_avg_temp_f < 76) then 14
             else 0
         end as morning_temp_score,
         -- Morning dew point score (40 pts)
@@ -90,10 +90,10 @@ components as (
 
         -- Afternoon temperature score (60 pts)
         case
-            when afternoon_avg_temp_f between 44 and 57 then 60
-            when afternoon_avg_temp_f between 58 and 63 then 44
-            when (afternoon_avg_temp_f between 35 and 43) or (afternoon_avg_temp_f between 64 and 67) then 30
-            when (afternoon_avg_temp_f between 28 and 34) or (afternoon_avg_temp_f between 68 and 75) then 14
+            when afternoon_avg_temp_f >= 44 and afternoon_avg_temp_f < 58 then 60
+            when afternoon_avg_temp_f >= 58 and afternoon_avg_temp_f < 64 then 44
+            when (afternoon_avg_temp_f >= 35 and afternoon_avg_temp_f < 44) or (afternoon_avg_temp_f >= 64 and afternoon_avg_temp_f < 68) then 30
+            when (afternoon_avg_temp_f >= 28 and afternoon_avg_temp_f < 35) or (afternoon_avg_temp_f >= 68 and afternoon_avg_temp_f < 76) then 14
             else 0
         end as afternoon_temp_score,
         -- Afternoon dew point score (40 pts)
@@ -112,10 +112,10 @@ components as (
 
         -- Evening temperature score (60 pts)
         case
-            when evening_avg_temp_f between 44 and 57 then 60
-            when evening_avg_temp_f between 58 and 63 then 44
-            when (evening_avg_temp_f between 35 and 43) or (evening_avg_temp_f between 64 and 67) then 30
-            when (evening_avg_temp_f between 28 and 34) or (evening_avg_temp_f between 68 and 75) then 14
+            when evening_avg_temp_f >= 44 and evening_avg_temp_f < 58 then 60
+            when evening_avg_temp_f >= 58 and evening_avg_temp_f < 64 then 44
+            when (evening_avg_temp_f >= 35 and evening_avg_temp_f < 44) or (evening_avg_temp_f >= 64 and evening_avg_temp_f < 68) then 30
+            when (evening_avg_temp_f >= 28 and evening_avg_temp_f < 35) or (evening_avg_temp_f >= 68 and evening_avg_temp_f < 76) then 14
             else 0
         end as evening_temp_score,
         -- Evening dew point score (40 pts)
