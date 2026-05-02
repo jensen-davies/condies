@@ -7,13 +7,23 @@ Build an end-to-end data pipeline that surfaces climbing conditions (temperature
 ## Stack
 | Layer | Tool | Status |
 |-------|------|--------|
-| Ingestion | Python scripts | Not started |
+| Ingestion | Python scripts | Working (Open-Meteo) |
 | Orchestration | Dagster (OSS) | Not installed |
-| Storage | Snowflake | Trial active (~20 days) |
-| Transformation | dbt Core | Fundamentals cert complete |
+| Storage | Snowflake | Trial active |
+| Transformation | dbt Core | Staging + intermediate + marts built |
 | IaC | Terraform | Not started |
 | Visualization | Metabase or Streamlit | TBD |
-| Version Control | GitHub (public) | No repo yet |
+| Version Control | GitHub (public) | Repo: `condies` |
+
+## CLAUDE.md Update Rules
+
+This file is **not a running log** — it is a stable reference document. Edit it sparingly.
+
+- Only update when a project milestone is reached or a major design decision is made
+- Do **not** add implementation details, step-by-step notes, or anything that belongs in `context.md`
+- **Always suggest the change and get confirmation before editing** — never edit this file unilaterally
+
+---
 
 ## Session Log Rules (`context.md`)
 
@@ -21,36 +31,35 @@ Build an end-to-end data pipeline that surfaces climbing conditions (temperature
 
 **At the start of every session:**
 - Read `context.md` fully before writing or running anything
-- Use the "Current state" and "Next session" fields from the last entry to orient yourself — do not rely on memory or assumptions
+- Use the "Current state" and "Remaining steps" fields from the last entry to orient yourself — do not rely on memory or assumptions
 
-**At the end of every session (any time meaningful progress is made):**
-- Append a new dated entry to `context.md` — never edit or delete past entries
-- Include: what was done, decisions made (and why), current state, and what to do next
+**Log after each confirmed step — not at end of session:**
+- Append a new entry to `context.md` as soon as the user confirms a step is complete
+- Do not batch multiple steps into one entry — one step = one entry
+- This prevents context loss if the terminal crashes or the session ends unexpectedly
 - "Current state" must be a complete snapshot — someone reading only that entry should know exactly where things stand
 - Use today's actual date (`YYYY-MM-DD`)
 
 **Format for each entry:**
 ```
-## YYYY-MM-DD
-**Status:** one-line summary
-
-**What happened:**
-- bullet list of actions taken
+## YYYY-MM-DD — <short step name>
+**Completed:** one-line description of what was just done
 
 **Decisions made:**
-- decision — reason
+- decision — reason (omit section if none)
 
 **Current state:**
 - complete snapshot of what exists and what doesn't
 
-**Next session:**
-1. numbered list of the immediate next steps
+**Remaining steps:**
+1. numbered list of what still needs to happen
 ```
 
-**What counts as a session worth logging:**
-- Any code written, files created, or commands run successfully
+**What counts as a step worth logging:**
+- Any command confirmed run successfully
+- Any file created or code written
 - Any architectural decision made
-- Any blocker hit (log it so the next session starts with context)
+- Any blocker hit
 
 **What does NOT go in context.md:**
 - Exploratory conversation with no concrete output
@@ -76,6 +85,7 @@ Build an end-to-end data pipeline that surfaces climbing conditions (temperature
 - Keep staging models 1:1 with source tables (rename/recast only, no joins)
 - Joins and business logic belong in intermediate or mart models, not staging
 - The climbability score formula in `fct_conditions.sql` must have an inline comment explaining each weighted factor
+- The climbability score is a **first-pass model** — it scores on temperature, dew point, wind bonus, and precipitation only. Future iterations should incorporate rock type and aspect, which affect how a crag responds to temperature and humidity (e.g. north-facing granite stays wet longer after rain than south-facing sandstone)
 
 ### Snowflake Rules
 - **Warehouse**: use `COMPUTE_WH` (X-SMALL) for all development — auto-suspend set to 1 minute to conserve trial credits
@@ -150,3 +160,20 @@ condies/
 - Snowflake trial: ~20 days remaining — prioritize the dbt ↔ Snowflake connection first
 - Target completion: 6-8 weeks
 - Terraform is last — get the rest of the stack working first
+
+## Roadmap
+
+### V2 — Route-Level Scoring
+- Add `boulder_routes` dbt seed (CSV) with: rock type, aspect, overhang angle, drainage/seepage/shade ratings
+- Join route metadata to `fct_conditions` to adjust scores per problem, not just per crag
+- Sandstone wet sensitivity, granite drying speed, aspect-driven sun exposure are the first modifiers worth adding
+
+### V2 — Multi-Dimensional Score Output
+- Replace single `climbability_score` with weighted sub-scores: friction, dryness, comfort, wind, sun exposure
+- Overall score = weighted rollup; sub-scores exposed for transparency
+- Requires route metadata (aspect, rock type) and additional weather variables (solar radiation, relative humidity)
+
+### V3+ — Historical Validation & Feedback
+- Store forecast snapshots + actual observations to backtest scoring accuracy
+- Community session feedback ("greasy", "prime", "still wet") as tuning signal
+- ML only after deterministic heuristics are validated against real data

@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: fct_conditions
+    description: >
+      One row per crag per day. Scores climbing conditions across three time windows
+      (morning 7–11am, afternoon 12–5pm, evening 6–11pm) using temperature, dew point,
+      wind bonus, and a precipitation gate. Overall climbability score is the average
+      of the three window scores (max 103).
+      This is a first-pass scoring model. Future iterations will incorporate
+      rock type and aspect, which affect how a crag responds to temperature and humidity.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - crag_name
+            - fetch_date
+            - day
+    columns:
+      - name: crag_name
+        description: Name of the climbing area.
+        tests:
+          - not_null
+      - name: fetch_date
+        description: Date the Open-Meteo API was called.
+        tests:
+          - not_null
+      - name: day
+        description: The forecasted date.
+        tests:
+          - not_null
+      - name: temp_min_f
+        description: Minimum temperature for the day in Fahrenheit.
+      - name: temp_max_f
+        description: Maximum temperature for the day in Fahrenheit.
+      - name: temp_avg_f
+        description: Average temperature for the day in Fahrenheit.
+      - name: precip_total_in
+        description: Total precipitation for the day in inches.
+      - name: windspeed_avg_mph
+        description: Average wind speed for the day in mph.
+      - name: windspeed_max_mph
+        description: Maximum wind speed for the day in mph.
+      - name: dewpoint_avg_f
+        description: Average dew point for the day in Fahrenheit.
+      - name: dewpoint_max_f
+        description: Maximum dew point for the day in Fahrenheit.
+      - name: morning_avg_temp_f
+        description: Average temperature during the morning window (7–11am) in Fahrenheit.
+      - name: morning_avg_dewpoint_f
+        description: Average dew point during the morning window in Fahrenheit.
+      - name: morning_precip_in
+        description: Total precipitation during the morning window in inches.
+      - name: morning_windspeed_mph
+        description: Average wind speed during the morning window in mph.
+      - name: morning_score
+        description: Climbability score for the morning window (max 103). Zero if any rain.
+      - name: afternoon_avg_temp_f
+        description: Average temperature during the afternoon window (12–5pm) in Fahrenheit.
+      - name: afternoon_avg_dewpoint_f
+        description: Average dew point during the afternoon window in Fahrenheit.
+      - name: afternoon_precip_in
+        description: Total precipitation during the afternoon window in inches.
+      - name: afternoon_windspeed_mph
+        description: Average wind speed during the afternoon window in mph.
+      - name: afternoon_score
+        description: Climbability score for the afternoon window (max 103). Zero if any rain.
+      - name: evening_avg_temp_f
+        description: Average temperature during the evening window (6–11pm) in Fahrenheit.
+      - name: evening_avg_dewpoint_f
+        description: Average dew point during the evening window in Fahrenheit.
+      - name: evening_precip_in
+        description: Total precipitation during the evening window in inches.
+      - name: evening_windspeed_mph
+        description: Average wind speed during the evening window in mph.
+      - name: evening_score
+        description: Climbability score for the evening window (max 103). Zero if any rain.
+      - name: climbability_score
+        description: >
+          Overall daily climbability score — average of morning, afternoon, and evening scores,
+          rounded to 1 decimal place (max 103).

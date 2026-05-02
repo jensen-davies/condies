@@ -41,3 +41,5 @@ models:
         description: Wind direction in degrees (0=N, 90=E, 180=S, 270=W)
       - name: weathercode
         description: WMO weather code (0=clear sky, 61=rain, etc).
+      - name: dewpoint_c
+        description: Dew point temperature at 2m above ground in celsius.

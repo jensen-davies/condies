@@ -1,0 +1,80 @@
+version: 2                                                             
+                                        
+models:                                                                
+  - name: int_weather_daily                                            
+    description: >                                                     
+      One row per crag per day, aggregated from hourly staging data.   
+      All units are imperial.                                          
+    tests:                                                             
+      - dbt_utils.unique_combination_of_columns:                       
+          combination_of_columns:                                      
+            - crag_name
+            - fetch_date
+            - day
+    columns:
+      - name: crag_name
+        description: Name of the climbing area.                        
+        tests:
+          - not_null                                                   
+      - name: fetch_date
+        description: Date the Open-Meteo API was called.
+        tests:                                                         
+          - not_null
+      - name: day                                                      
+        description: The forecasted date.
+        tests:                                                         
+          - not_null
+      - name: temp_min_f                                               
+        description: Minimum temperature for the day in Fahrenheit.
+      - name: temp_max_f
+        description: Maximum temperature for the day in Fahrenheit.    
+      - name: precip_total_in
+        description: Total precipitation for the day in inches.        
+      - name: windspeed_avg_mph
+        description: Average wind speed for the day in mph.
+      - name: windspeed_max_mph
+        description: Maximum wind speed for the day in mph. 
+      - name: temp_avg_f
+        description: Average temperature for the day in Fahrenheit.
+      - name: dewpoint_avg_f
+        description: Average dew point for the day in Fahrenheit. Lower values indicate drier air and better friction.
+      - name: dewpoint_max_f
+        description: Maximum dew point for the day in Fahrenheit. Indicates the most humid point in the day.
+
+  - name: int_weather_windows
+    description: >
+      One row per crag per day per time window (morning, afternoon, evening).
+      Aggregates hourly staging data into three windows covering 7am–midnight.
+      Used by fct_conditions to score each window independently.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - crag_name
+            - fetch_date
+            - day
+            - window
+    columns:
+      - name: crag_name
+        description: Name of the climbing area.
+        tests:
+          - not_null
+      - name: fetch_date
+        description: Date the Open-Meteo API was called.
+        tests:
+          - not_null
+      - name: day
+        description: The forecasted date.
+        tests:
+          - not_null
+      - name: window
+        description: Time window — morning (7am–11am), afternoon (12pm–5pm), or evening (6pm–11pm).
+        tests:
+          - not_null
+      - name: avg_temp_f
+        description: Average temperature within the window in Fahrenheit.
+      - name: avg_dewpoint_f
+        description: Average dew point within the window in Fahrenheit.
+      - name: total_precip_in
+        description: Total precipitation within the window in inches.
+      - name: avg_windspeed_mph
+        description: Average wind speed within the window in mph.

@@ -15,7 +15,8 @@ flattened as (
         source.raw_json:hourly.precipitation[f.index]::float as precipitation_mm,                                                    
         source.raw_json:hourly.windspeed_10m[f.index]::float as windspeed_kmh,                                                       
         source.raw_json:hourly.wind_direction_10m[f.index]::int as wind_direction_deg,                                                  
-        source.raw_json:hourly.weathercode[f.index]::int as weathercode                                                          
+        source.raw_json:hourly.weathercode[f.index]::int   as weathercode,
+        source.raw_json:hourly.dewpoint_2m[f.index]::float as dewpoint_c                                                          
     from source,
           lateral flatten(input => source.raw_json:hourly.time) f
   )                                                                    

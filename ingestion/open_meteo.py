@@ -16,7 +16,7 @@ CRAGS = [
 ]
 
 BASE_URL = "https://api.open-meteo.com/v1/forecast"
-HOURLY_VARS = "temperature_2m,precipitation,windspeed_10m,wind_direction_10m,weathercode"
+HOURLY_VARS = "temperature_2m,precipitation,windspeed_10m,wind_direction_10m,weathercode,dewpoint_2m"
 DAILY_VARS  = "temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max"
 
 
