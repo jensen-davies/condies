@@ -15,13 +15,14 @@ def _get_connection():
     )
 
 
-def load_conditions(crag_name: str) -> pd.DataFrame:
+def load_all_conditions() -> dict[str, pd.DataFrame]:
     conn = _get_connection()
     cur = conn.cursor()
     try:
         cur.execute(
             """
             SELECT
+                crag_name,
                 day,
                 morning_min_temp_f,
                 morning_avg_temp_f,
@@ -43,17 +44,15 @@ def load_conditions(crag_name: str) -> pd.DataFrame:
                 evening_score,
                 climbability_score
             FROM fct_conditions
-            WHERE crag_name = %s
-              AND fetch_date = (
-                  SELECT MAX(fetch_date) FROM fct_conditions WHERE crag_name = %s
-              )
-            ORDER BY day
-            """,
-            (crag_name, crag_name),
+            QUALIFY fetch_date = MAX(fetch_date) OVER (PARTITION BY crag_name)
+            ORDER BY crag_name, day
+            """
         )
         columns = [desc[0].lower() for desc in cur.description]
         rows = cur.fetchall()
-        return pd.DataFrame(rows, columns=columns)
+        df = pd.DataFrame(rows, columns=columns)
+        return {crag: group.drop(columns="crag_name").reset_index(drop=True)
+                for crag, group in df.groupby("crag_name")}
     finally:
         cur.close()
         conn.close()

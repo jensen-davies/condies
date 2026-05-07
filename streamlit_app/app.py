@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from config import CRAGS
-from data import load_conditions
+from data import load_all_conditions
 
 st.set_page_config(page_title="Condies", layout="wide")
 
@@ -39,8 +39,8 @@ Any precipitation zeroes the window. The daily score is the average of all three
 # ── Data ─────────────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=3600)
-def get_conditions(crag_name: str) -> pd.DataFrame:
-    return load_conditions(crag_name)
+def get_all_conditions() -> dict:
+    return load_all_conditions()
 
 
 # ── Scoring helpers ───────────────────────────────────────────────────────────
@@ -103,6 +103,6 @@ def render_forecast(df: pd.DataFrame):
 
 # ── Layout ────────────────────────────────────────────────────────────────────
 
+all_conditions = get_all_conditions()
 selected_crag = st.selectbox("Crag", list(CRAGS.keys()))
-df = get_conditions(selected_crag)
-render_forecast(df)
+render_forecast(all_conditions[selected_crag])
