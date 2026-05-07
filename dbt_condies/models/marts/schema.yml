@@ -4,7 +4,7 @@ models:
   - name: fct_conditions
     description: >
       One row per crag per day. Scores climbing conditions across three time windows
-      (morning 7–11am, afternoon 12–5pm, evening 6–11pm) using temperature, dew point,
+      (morning 7am–12pm, afternoon 12pm–6pm, evening 6pm–12am) using temperature, dew point,
       wind bonus, and a precipitation gate. Overall climbability score is the average
       of the three window scores (max 103).
       This is a first-pass scoring model. Future iterations will incorporate
@@ -44,34 +44,46 @@ models:
         description: Average dew point for the day in Fahrenheit.
       - name: dewpoint_max_f
         description: Maximum dew point for the day in Fahrenheit.
+      - name: morning_min_temp_f
+        description: Minimum temperature during the morning window (7am-12pm) in Fahrenheit.
       - name: morning_avg_temp_f
-        description: Average temperature during the morning window (7–11am) in Fahrenheit.
+        description: Average temperature during the morning window (7am-12pm) in Fahrenheit.
+      - name: morning_max_temp_f
+        description: Maximum temperature during the morning window (7am-12pm) in Fahrenheit.
       - name: morning_avg_dewpoint_f
-        description: Average dew point during the morning window in Fahrenheit.
+        description: Average dew point during the morning window (7am-12pm) in Fahrenheit.
       - name: morning_precip_in
-        description: Total precipitation during the morning window in inches.
+        description: Total precipitation during the morning window (7am-12pm) in inches.
       - name: morning_windspeed_mph
-        description: Average wind speed during the morning window in mph.
+        description: Average wind speed during the morning window (7am-12pm) in mph.
       - name: morning_score
         description: Climbability score for the morning window (max 103). Zero if any rain.
+      - name: afternoon_min_temp_f
+        description: Minimum temperature during the afternoon window (12pm-6pm) in Fahrenheit.
       - name: afternoon_avg_temp_f
-        description: Average temperature during the afternoon window (12–5pm) in Fahrenheit.
+        description: Average temperature during the afternoon window (12pm-6pm) in Fahrenheit.
+      - name: afternoon_max_temp_f
+        description: Maximum temperature during the afternoon window (12pm-6pm) in Fahrenheit.
       - name: afternoon_avg_dewpoint_f
-        description: Average dew point during the afternoon window in Fahrenheit.
+        description: Average dew point during the afternoon window (12pm-6pm) in Fahrenheit.
       - name: afternoon_precip_in
-        description: Total precipitation during the afternoon window in inches.
+        description: Total precipitation during the afternoon window (12pm-6pm) in inches.
       - name: afternoon_windspeed_mph
-        description: Average wind speed during the afternoon window in mph.
+        description: Average wind speed during the afternoon window (12pm-6pm) in mph.
       - name: afternoon_score
         description: Climbability score for the afternoon window (max 103). Zero if any rain.
+      - name: evening_min_temp_f
+        description: Minimum temperature during the evening window (6pm-12am) in Fahrenheit.
       - name: evening_avg_temp_f
-        description: Average temperature during the evening window (6–11pm) in Fahrenheit.
+        description: Average temperature during the evening window (6pm-12am) in Fahrenheit.
+      - name: evening_max_temp_f
+        description: Maximum temperature during the evening window (6pm-12am) in Fahrenheit.
       - name: evening_avg_dewpoint_f
-        description: Average dew point during the evening window in Fahrenheit.
+        description: Average dew point during the evening window (6pm-12am) in Fahrenheit.
       - name: evening_precip_in
-        description: Total precipitation during the evening window in inches.
+        description: Total precipitation during the evening window (6pm-12am) in inches.
       - name: evening_windspeed_mph
-        description: Average wind speed during the evening window in mph.
+        description: Average wind speed during the evening window (6pm-12am) in mph.
       - name: evening_score
         description: Climbability score for the evening window (max 103). Zero if any rain.
       - name: climbability_score

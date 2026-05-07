@@ -379,3 +379,59 @@
 1. Commit to GitHub
 2. Add a daily schedule in Dagster
 3. Start visualization layer (Metabase or Streamlit)
+
+---
+
+## 2026-05-02 — Streamlit dashboard built
+**Completed:** Built `streamlit_app/` with a dark-themed forecast dashboard. Chose Streamlit over Metabase for portfolio flexibility and free local hosting.
+
+**Decisions made:**
+- Dark theme via `.streamlit/config.toml`; primary color `#2ecc71` (green)
+- Single-column layout with `max-width: 860px` centered — caps on large screens, shrinks to viewport on mobile; `flex-wrap` so window cards stack on narrow screens
+- Window cards colored by score tier: green ≥70, amber ≥40, red <40
+- Precipitation renders 🌧 Rain inside the card; the score is already zeroed by the multiplier in dbt
+- Removed map — added noise without value at this stage
+- `config.py` created as single source of truth for CRAGS (lat/lon); imported by ingestion, Dagster, and Streamlit
+- Kings Canyon added as fourth crag
+- Run with `PYTHONPATH=. streamlit run streamlit_app/app.py`
+
+**Current state:**
+- `streamlit_app/app.py` — forecast UI with morning/afternoon/evening score cards
+- `streamlit_app/data.py` — queries `fct_conditions` via Snowflake connector
+- `config.py` — centralized CRAGS dict
+- `.streamlit/config.toml` — dark theme config
+- Nothing committed to GitHub yet
+
+**Remaining steps:**
+1. Commit to GitHub
+2. Add a daily schedule in Dagster
+
+---
+
+## 2026-05-07 — Min/avg/max temp per window + UI polish
+**Completed:** Added low/avg/high temperature to each window card. Fixed several UI details.
+
+**Decisions made:**
+- `int_weather_windows` now outputs `min_temp_f`, `avg_temp_f`, `max_temp_f` per window
+- `fct_conditions` pivots and exposes all three for morning/afternoon/evening (9 new columns)
+- Card displays `L 52° A 58° H 64°F` with dimmed L/A/H labels so values read first
+- `/103` now styled to match the score color at 60% opacity — was too dark before
+- Dew point label changed from "dew" to "dew pt"
+- Day-header avg score bumped to `1rem bold` — was too small at `0.75rem`
+- Scoring blurb added below the page caption explaining the formula and window times
+- Window times corrected to `7am–12pm · 12pm–6pm · 6pm–12am` (hourly data means BETWEEN 7 AND 11 covers 7:00–11:59, not 7:00–11:00)
+- All schema.yml descriptions updated to match
+
+**Current state:**
+- `int_weather_windows.sql` — outputs min/avg/max temp per window
+- `fct_conditions.sql` — pivots and exposes all three; 9 new columns in final SELECT
+- `intermediate/schema.yml` and `marts/schema.yml` — fully documented with corrected time ranges
+- `streamlit_app/data.py` — queries all new columns
+- `streamlit_app/app.py` — L/A/H temp display, /103 color fix, "dew pt", larger avg score, scoring blurb
+- dbt run needed to materialize the new columns in Snowflake
+- Nothing committed to GitHub yet
+
+**Remaining steps:**
+1. Re-materialize in Dagster (or `dbt run`) to push new columns to Snowflake
+2. Commit to GitHub
+3. Add a daily schedule in Dagster

@@ -9,11 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-CRAGS = [
-    {"name": "Camp 4",        "latitude": 37.741720, "longitude": -119.603540},
-    {"name": "Buttermilks",   "latitude": 37.328170, "longitude": -118.574770},
-    {"name": "Castle Rock SP","latitude": 37.229540, "longitude": -122.096580},
-]
+from config import CRAGS
 
 BASE_URL = "https://api.open-meteo.com/v1/forecast"
 HOURLY_VARS = "temperature_2m,precipitation,windspeed_10m,wind_direction_10m,weathercode,dewpoint_2m"
@@ -58,7 +54,7 @@ def ensure_table(cursor):
     """)
 
 
-def insert_row(cursor, crag: dict, payload: dict):
+def insert_row(cursor, name: str, lat: float, lon: float, payload: dict):
     cursor.execute(
         """
         INSERT INTO RAW.OPEN_METEO_WEATHER (FETCH_DATE, CRAG_NAME, LATITUDE, LONGITUDE, RAW_JSON)
@@ -66,9 +62,9 @@ def insert_row(cursor, crag: dict, payload: dict):
         """,
         (
             date.today().isoformat(),
-            crag["name"],
-            crag["latitude"],
-            crag["longitude"],
+            name,
+            lat,
+            lon,
             json.dumps(payload),
         ),
     )
@@ -79,19 +75,19 @@ def main():
     cur = conn.cursor()
     ensure_table(cur)
 
-    for crag in CRAGS:
-        print(f"Fetching {crag['name']}...")
+    for name, coords in CRAGS.items():
+        print(f"Fetching {name}...")
         params = {
-            "latitude":  crag["latitude"],
-            "longitude": crag["longitude"],
+            "latitude":  coords["lat"],
+            "longitude": coords["lon"],
             "hourly":    HOURLY_VARS,
             "daily":     DAILY_VARS,
             "timezone":  "auto",
             "forecast_days": 3,
         }
         payload = fetch_with_backoff(params)
-        insert_row(cur, crag, payload)
-        print(f"  Inserted row for {crag['name']}")
+        insert_row(cur, name, coords["lat"], coords["lon"], payload)
+        print(f"  Inserted row for {name}")
 
     conn.commit()
     cur.close()

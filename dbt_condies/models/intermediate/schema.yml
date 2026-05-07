@@ -44,7 +44,7 @@ models:
   - name: int_weather_windows
     description: >
       One row per crag per day per time window (morning, afternoon, evening).
-      Aggregates hourly staging data into three windows covering 7am–midnight.
+      Aggregates hourly staging data into three windows covering 7am–12am.
       Used by fct_conditions to score each window independently.
     tests:
       - dbt_utils.unique_combination_of_columns:
@@ -67,11 +67,15 @@ models:
         tests:
           - not_null
       - name: window
-        description: Time window — morning (7am–11am), afternoon (12pm–5pm), or evening (6pm–11pm).
+        description: Time window — morning (7am–12pm), afternoon (12pm–6pm), or evening (6pm–midnight).
         tests:
           - not_null
+      - name: min_temp_f
+        description: Minimum temperature within the window in Fahrenheit.
       - name: avg_temp_f
         description: Average temperature within the window in Fahrenheit.
+      - name: max_temp_f
+        description: Maximum temperature within the window in Fahrenheit.
       - name: avg_dewpoint_f
         description: Average dew point within the window in Fahrenheit.
       - name: total_precip_in
