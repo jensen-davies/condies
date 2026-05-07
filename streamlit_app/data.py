@@ -1,19 +1,16 @@
-import os
-
 import pandas as pd
 import snowflake.connector
-from dotenv import load_dotenv
-
-load_dotenv()
+import streamlit as st
 
 
 def _get_connection():
+    s = st.secrets["snowflake"]
     return snowflake.connector.connect(
-        account=os.environ["SNOWFLAKE_ACCOUNT"],
-        user=os.environ["SNOWFLAKE_USER"],
-        password=os.environ["SNOWFLAKE_PASSWORD"],
-        database=os.environ["SNOWFLAKE_DATABASE"],
-        warehouse=os.environ["SNOWFLAKE_WAREHOUSE"],
+        account=s["account"],
+        user=s["user"],
+        password=s["password"],
+        database=s["database"],
+        warehouse=s["warehouse"],
         schema="MARTS",
     )
 

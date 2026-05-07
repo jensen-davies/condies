@@ -16,6 +16,9 @@ build/
 .env.*
 !.env.example
 
+# Streamlit secrets (local only — add real values in Streamlit Cloud UI)
+.streamlit/secrets.toml
+
 # dbt
 target/
 dbt_packages/
