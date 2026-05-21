@@ -52,7 +52,7 @@ models:
             - crag_name
             - fetch_date
             - day
-            - window
+            - time_window
     columns:
       - name: crag_name
         description: Name of the climbing area.
@@ -66,7 +66,7 @@ models:
         description: The forecasted date.
         tests:
           - not_null
-      - name: window
+      - name: time_window
         description: Time window — morning (7am–12pm), afternoon (12pm–6pm), or evening (6pm–midnight).
         tests:
           - not_null

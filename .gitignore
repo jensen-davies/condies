@@ -28,6 +28,10 @@ logs/
 .dagster/
 .tmp_dagster_home_*/
 
+# GCP service account keys
+*-sa*.json
+condies-*.json
+
 # Terraform
 .terraform/
 *.tfstate

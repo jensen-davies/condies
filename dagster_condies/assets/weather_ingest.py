@@ -2,7 +2,7 @@ from dagster import asset, MaterializeResult, MetadataValue
 
 from config import CRAGS
 from ingestion.open_meteo import (
-    get_connection,
+    get_client,
     ensure_table,
     fetch_with_backoff,
     insert_row,
@@ -13,9 +13,8 @@ from ingestion.open_meteo import (
 
 @asset
 def raw_weather() -> MaterializeResult:
-    conn = get_connection()
-    cur = conn.cursor()
-    ensure_table(cur)
+    client = get_client()
+    ensure_table(client)
 
     for name, coords in CRAGS.items():
         params = {
@@ -27,11 +26,7 @@ def raw_weather() -> MaterializeResult:
             "forecast_days": 3,
         }
         payload = fetch_with_backoff(params)
-        insert_row(cur, name, coords["lat"], coords["lon"], payload)
-
-    conn.commit()
-    cur.close()
-    conn.close()
+        insert_row(client, name, coords["lat"], coords["lon"], payload)
 
     return MaterializeResult(
         metadata={
