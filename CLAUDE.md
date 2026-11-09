@@ -8,11 +8,11 @@ Build an end-to-end data pipeline that surfaces climbing conditions (temperature
 | Layer | Tool | Status |
 |-------|------|--------|
 | Ingestion | Python scripts | Working (Open-Meteo) |
-| Orchestration | Dagster (OSS) | Not installed |
-| Storage | Snowflake | Trial active |
-| Transformation | dbt Core | Staging + intermediate + marts built |
+| Orchestration | Dagster (OSS) | Working — manual trigger, no schedule/partitions yet |
+| Storage | BigQuery | Working (migrated from Snowflake 2026-05-20) |
+| Transformation | dbt Core (`dbt-bigquery`) | Staging + intermediate + marts built |
 | IaC | Terraform | Not started |
-| Visualization | Metabase or Streamlit | TBD |
+| Visualization | Streamlit | Working, deployed to Streamlit Cloud |
 | Version Control | GitHub (public) | Repo: `condies` |
 
 ## CLAUDE.md Update Rules
@@ -87,12 +87,11 @@ This file is **not a running log** — it is a stable reference document. Edit i
 - The climbability score formula in `fct_conditions.sql` must have an inline comment explaining each weighted factor
 - The climbability score is a **first-pass model** — it scores on temperature, dew point, wind bonus, and precipitation only. Future iterations should incorporate rock type and aspect, which affect how a crag responds to temperature and humidity (e.g. north-facing granite stays wet longer after rain than south-facing sandstone)
 
-### Snowflake Rules
-- **Warehouse**: use `COMPUTE_WH` (X-SMALL) for all development — auto-suspend set to 1 minute to conserve trial credits
-- **Database structure**: `CONDIES_DB` → schemas: `RAW`, `STAGING`, `INTERMEDIATE`, `MARTS`
-- Never query the `RAW` schema directly in dbt models — always go through a staging model
-- Profile credentials go in `~/.dbt/profiles.yml`, never in the repo
-- Add `snowflake_warehouse: COMPUTE_WH` to every dbt model config that runs expensive joins — prevents accidental large warehouse usage
+### BigQuery Rules
+- **Project / datasets**: GCP project `condies-497005` → datasets: `raw`, `staging`, `intermediate`, `marts` (lowercase)
+- Stay within the BigQuery free tier — on-demand pricing bills by bytes scanned, so select only needed columns and avoid full scans of large tables
+- Never query the `raw` dataset directly in dbt models — always go through a staging model
+- Credentials: dbt profile in `~/.dbt/profiles.yml`; service account key path via `GOOGLE_APPLICATION_CREDENTIALS`; Streamlit Cloud uses `st.secrets` — never in the repo
 
 ### Dagster Rules
 - Use the **Software-Defined Assets** (SDA) API — not the older Jobs/Ops API. SDAs are the modern Dagster paradigm and what interviewers expect to hear about.
@@ -103,7 +102,7 @@ This file is **not a running log** — it is a stable reference document. Edit i
 
 ### Python / Ingestion Rules
 - Ingestion scripts are dumb extractors only — no transformation logic
-- Write raw API responses to Snowflake `RAW` schema as-is (use `snowflake-connector-python` or `snowflake-sqlalchemy`)
+- Write raw API responses to the BigQuery `raw` dataset as-is (use `google-cloud-bigquery`)
 - Every API call must handle rate limits with exponential backoff
 - API keys go in environment variables, never hardcoded
 
@@ -120,7 +119,7 @@ condies/
 │   └── workflows/          # CI (dbt compile check at minimum)
 ├── dagster_condies/
 │   ├── assets/             # one file per data source + dbt assets
-│   ├── resources/          # Snowflake connection, dbt resource
+│   ├── resources/          # BigQuery connection, dbt resource
 │   └── definitions.py      # Dagster Definitions object
 ├── dbt_condies/
 │   ├── models/
@@ -131,17 +130,19 @@ condies/
 │   ├── tests/              # custom singular tests
 │   └── dbt_project.yml
 ├── ingestion/              # raw Python extraction scripts
-├── terraform/              # Snowflake IaC (add last)
+├── streamlit_app/          # dashboard (reads marts.fct_conditions)
+├── terraform/              # GCP/BigQuery IaC (add last)
+├── config.py               # CRAGS dict — single source of truth for crag lat/lon
 ├── .env.example            # template with required env var names, no values
-└── claude.md
+└── CLAUDE.md
 ```
 
 ## Setup Sequence (do in order)
 1. Create GitHub repo, clone locally
-2. Set up Snowflake: create `CONDIES_DB`, schemas, `COMPUTE_WH` with 1-min auto-suspend
-3. Configure `~/.dbt/profiles.yml` for Snowflake connection
+2. Set up GCP: project, enable BigQuery API, service account + JSON key, datasets `raw`/`staging`/`intermediate`/`marts`
+3. Configure `~/.dbt/profiles.yml` for BigQuery connection
 4. `dbt init dbt_condies` — confirm connection with `dbt debug`
-5. `pip install dagster dagster-dbt dagster-snowflake` — confirm with `dagster dev`
+5. `pip install dagster dagster-dbt dagster-gcp` — confirm with `dg dev -f dagster_condies/definitions.py`
 6. Build ingestion script for Open-Meteo first (no auth required — easiest win)
 7. Build `stg_weather.sql` — first dbt model
 8. Wire up Dagster asset for weather ingestion → dbt run
@@ -150,14 +151,14 @@ condies/
 ## Interview Talking Points to Build Toward
 - Why the dbt staging → intermediate → marts layer separation exists
 - What Software-Defined Assets are and why they replaced the Jobs/Ops model in Dagster
-- How Snowflake virtual warehouses and credit consumption work
+- How BigQuery on-demand pricing (bytes scanned) works, and why the project moved off Snowflake (trial credits vs. a permanent free tier)
 - What idempotency means in a data pipeline and how partitioning achieves it
 - How the climbability score formula was designed (domain knowledge + weighted factors)
 - Why this is a star schema and what that means for query performance
 
 ## Constraints
 - 3-4 hours available on non-climbing weekends
-- Snowflake trial: ~20 days remaining — prioritize the dbt ↔ Snowflake connection first
+- BigQuery free tier only — no paid compute
 - Target completion: 6-8 weeks
 - Terraform is last — get the rest of the stack working first
 

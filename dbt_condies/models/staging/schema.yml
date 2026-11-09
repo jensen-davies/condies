@@ -24,7 +24,7 @@ models:
       - name: longitude
         description: Longitude of the crag.
       - name: loaded_at
-        description: Timestamp when the raw row was loaded into Snowflake.
+        description: Timestamp when the raw row was loaded into BigQuery.
       - name: hour_index
         description: Position within the API response array (0-71 for a 3-day forecast).
       - name: hour_at

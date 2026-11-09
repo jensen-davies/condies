@@ -435,3 +435,80 @@
 1. Re-materialize in Dagster (or `dbt run`) to push new columns to Snowflake
 2. Commit to GitHub
 3. Add a daily schedule in Dagster
+
+---
+
+## 2026-05-07 — Streamlit app configured for Streamlit Cloud *(backfilled 2026-11-09)*
+**Completed:** Committed the full pipeline to GitHub and prepared the Streamlit app for Streamlit Cloud deployment.
+
+**Decisions made:**
+- Credentials read from `st.secrets` on Streamlit Cloud — no keyfile on the host
+- Fixed import path so `config.py` resolves on Streamlit Cloud
+- Added `requirements.txt` for Streamlit Cloud's dependency install
+- Load all crags in one query up front instead of one round-trip per crag selection — cached with `st.cache_data(ttl=3600)`
+
+**Current state:**
+- All dbt, Dagster, ingestion and Streamlit code committed to `main`
+- Warehouse still Snowflake at this point
+
+**Remaining steps:**
+1. Add a daily schedule in Dagster
+
+---
+
+## 2026-05-20 — Migrated warehouse from Snowflake to BigQuery *(backfilled 2026-11-09)*
+**Completed:** Moved storage, dbt, ingestion and Streamlit from Snowflake to BigQuery. `dbt debug` and `dbt run` confirmed clean. Checklist in `snowflake_to_bigquery.md`.
+
+**Decisions made:**
+- BigQuery over Snowflake — Snowflake trial credits were running out; BigQuery's free tier is permanent
+- GCP project `condies-497005`, datasets `raw`, `staging`, `intermediate`, `marts` (lowercase)
+- `stg_weather` rewritten with `JSON_VALUE_ARRAY` + `UNNEST` in place of `LATERAL FLATTEN` / VARIANT paths
+- `QUALIFY` replaced with ranked CTE + `WHERE` in `stg_weather` and the Streamlit query
+- `time_window` column renamed to avoid a BigQuery reserved-keyword collision
+- Local creds via `GOOGLE_APPLICATION_CREDENTIALS`; Streamlit Cloud via `st.secrets`
+- Added `python-dotenv` to `requirements.txt` (missing dependency broke Streamlit Cloud)
+
+**Current state:**
+- Full pipeline runs on BigQuery: Open-Meteo → `raw.open_meteo_weather` → dbt → `marts.fct_conditions` → Streamlit
+- Not confirmed post-migration: `dbt test` passing, Streamlit app loading BigQuery data
+- `dagster-snowflake` → `dagster-gcp` swap not done (unused — no Snowflake resource was wired in)
+
+**Remaining steps:**
+1. Run `dbt test` on BigQuery and confirm the Streamlit app loads data
+2. Add a daily schedule in Dagster
+
+---
+
+## 2026-05-21 — README added *(backfilled 2026-11-09)*
+**Completed:** Wrote `README.md`: project purpose, architecture diagram, scoring model table, stack, and tracked crags.
+
+**Current state:**
+- Repo has a public-facing README describing the BigQuery-based pipeline
+
+**Remaining steps:**
+1. Run `dbt test` on BigQuery and confirm the Streamlit app loads data
+2. Add a daily schedule in Dagster
+
+---
+
+## 2026-11-09 — Docs brought up to date after ~6-month break
+**Completed:** Updated `CLAUDE.md` to reflect BigQuery and Streamlit; backfilled the three missing `context.md` entries above; fixed a stale "Snowflake" description in `staging/schema.yml`.
+
+**Decisions made:**
+- `CLAUDE.md` Snowflake Rules replaced with BigQuery Rules (project/datasets, free-tier cost discipline, credential handling)
+- Stack table, folder structure, setup sequence, talking points and constraints updated to BigQuery
+- `condies_project.md` and `snowflake_to_bigquery.md` left as-is — historical docs
+
+**Current state:**
+- **Ingestion:** `ingestion/open_meteo.py` — 3-day hourly forecast for 4 crags (Camp 4, Buttermilks, Castle Rock SP, Kings Canyon) from `config.py`, written raw to BigQuery `raw.open_meteo_weather`
+- **dbt:** `stg_weather` → `int_weather_daily` + `int_weather_windows` → `fct_conditions` (morning/afternoon/evening scores; temp 60 + dew point 40 + wind 3, zeroed by precip; max 103)
+- **Dagster:** `raw_weather` SDA + `@dbt_assets`; manual trigger only — no schedule, no partitions
+- **Streamlit:** dashboard on Streamlit Cloud reading `marts.fct_conditions`
+- **Not started:** CI workflow, dbt seeds (crag metadata), Terraform, additional sources (OpenAQ, Mountain Project)
+- Unverified since migration: `dbt test` on BigQuery, Streamlit loading BigQuery data
+- New project goals pending discussion with user
+
+**Remaining steps:**
+1. Discuss and define new project goals
+2. Run `dbt test` on BigQuery and confirm the Streamlit app loads data
+3. Add a daily schedule + daily partitions in Dagster
